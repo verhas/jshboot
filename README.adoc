@@ -19,12 +19,9 @@ Jamal, for example, uses the following script:
 [source,java]
 ----
 /open https://raw.githubusercontent.com/verhas/jshboot/main/JshBoot.java
-/open https://raw.githubusercontent.com/verhas/jamal/master/jamal-cmd/scripts/optionloader.jsh
-
-    String VERSION = "1.2.0";
 
     var boot=JshBoot.defaultLocalRepo().
-        maven().groupId("com.javax0.jamal").version(VERSION).
+        maven().groupId("com.javax0.jamal").version("1.2.0").
         artifactId("jamal-engine").
         artifactId("jamal-api").
         artifactId("jamal-tools").
@@ -40,10 +37,7 @@ Jamal, for example, uses the following script:
 /exit
 ----
 
-This script loads the `JshBoot` class script and a Jamal specific script.
-The Jamal specific script reads a text file to identify the command line optioins for Jamal.
-This is not interesting for the example.
-We focus on the use and the API of `JshBoot`.
+This script loads the `JshBoot` class script at the start using the `/open` command.
 
 The code creates a `boot` object calling the static method `defaultLocalRepo()`.
 
@@ -62,7 +56,7 @@ The next calls declare the downloads.
 
 [source,java]
 ----
-        maven().groupId("com.javax0.jamal").version(VERSION).
+        maven().groupId("com.javax0.jamal").version("1.2.0").
         artifactId("jamal-engine").
         artifactId("jamal-api").
         artifactId("jamal-tools").
@@ -93,4 +87,13 @@ The call to `execute()` will build a command line of the form
 `JshBoot` will automatically list all the files on the classpath, which were downloaded.
 The main class is the one specified as the first argument to the method `execute()`.
 The rest of the arguments are passed to the Java program.
+
+To have your program runnable automatically you create a JShell script similar to the above.
+You put it on a server so that it can be downloaded.
+You provide the URL to the script to your users and instruct them to type in
+
+[source,text]
+----
+jshell https://your.script.url
+----
 
