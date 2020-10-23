@@ -1,3 +1,96 @@
 = jshboot - start Java applications from the net
 
 This repository contains JShell scripts that you can use to bootstrap and start your command-line Java application.
+
+Using JShell it is possible to start a Java application without installing it.
+A simple JShell script can download the JAR files and can start the JVM to execute the application.
+JShell itself does not contain built-in commands for the purpose, but it can include scripts from different sources.
+To use the script as a library simplifying the download and installation of a Java program you can include the command
+
+[source,java]
+----
+/open https://raw.githubusercontent.com/verhas/jshboot/main/JshBoot.java
+----
+
+in your script.
+The script contains a class `JshBoot` that can be used to download JAR files and to execute the program.
+Jamal, for example, uses the following script:
+
+[source,java]
+----
+/open https://raw.githubusercontent.com/verhas/jshboot/main/JshBoot.java
+/open https://raw.githubusercontent.com/verhas/jamal/master/jamal-cmd/scripts/optionloader.jsh
+
+    String VERSION = "1.2.0";
+
+    var boot=JshBoot.defaultLocalRepo().
+        maven().groupId("com.javax0.jamal").version(VERSION).
+        artifactId("jamal-engine").
+        artifactId("jamal-api").
+        artifactId("jamal-tools").
+        artifactId("jamal-core").
+        artifactId("jamal-cmd");
+
+... some code deleted that reads the commandLineOptions from a file ...
+
+    String[] args = ...
+
+    boot.execute("javax0.jamal.cmd.JamalMain", args);
+
+/exit
+----
+
+This script loads the `JshBoot` class script and a Jamal specific script.
+The Jamal specific script reads a text file to identify the command line optioins for Jamal.
+This is not interesting for the example.
+We focus on the use and the API of `JshBoot`.
+
+The code creates a `boot` object calling the static method `defaultLocalRepo()`.
+
+[source,java]
+----
+    var boot=JshBoot.defaultLocalRepo().
+----
+
+this static method sets the local repository directory to be the default.
+This is `~/.m2/repository`.
+If the environment variable `JSHBOOT_JAR_REPO` points to somewhere else then that will be used.
+Usually maven stores the downloaded JAR files in the directory `~/.m2/repository`.
+`JshBoot` uses the same, saving extra download in case Maven has already downloaded some libraries.
+
+The next calls declare the downloads.
+
+[source,java]
+----
+        maven().groupId("com.javax0.jamal").version(VERSION).
+        artifactId("jamal-engine").
+        artifactId("jamal-api").
+        artifactId("jamal-tools").
+        artifactId("jamal-core").
+        artifactId("jamal-cmd");
+----
+
+Calling `maven()` declares that we want to download artifacs from maven central.
+`groupId()` specifies the group ID and `version()` the version.
+The calls to the method `artifactId()` download the individual artifacts for the same `groupId` and `version`.
+
+The last call executes the program.
+
+[source,java]
+----
+    boot.execute("javax0.jamal.cmd.JamalMain", args);
+/exit
+----
+
+The call to `execute()` will build a command line of the form
+
+[source,text]
+----
+    java -cp classPath mainClass arguments
+/exit
+----
+
+`JshBoot` will automatically list all the files on the classpath, which were downloaded.
+The main class is the one specified as the first argument to the method `execute()`.
+The rest of the arguments are passed to the Java program.
+
