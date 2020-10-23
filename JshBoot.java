@@ -9,7 +9,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 class JshBoot {
     private List<String> classPath = new ArrayList<>();
@@ -230,6 +229,10 @@ class JshBoot {
             info(jar.getAbsolutePath() + " is already in the repo");
             return;
         }
+        fetch(url, jar);
+    }
+
+    public JshBoot fetch(URL url, File jar) throws IOException {
         info("download " + url);
         info("to file " + jar.getAbsolutePath());
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
@@ -253,5 +256,6 @@ class JshBoot {
                 outStream.write(buffer, 0, bytesRead);
             }
         }
+        return this;
     }
 }
