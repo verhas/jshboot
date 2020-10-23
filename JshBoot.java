@@ -232,7 +232,7 @@ class JshBoot {
         fetch(url, jar);
     }
 
-    public JshBoot fetch(URL url, File jar) throws IOException {
+    public static void fetch(URL url, File jar) throws IOException {
         info("download " + url);
         info("to file " + jar.getAbsolutePath());
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
@@ -256,6 +256,5 @@ class JshBoot {
                 outStream.write(buffer, 0, bytesRead);
             }
         }
-        return this;
     }
 }
