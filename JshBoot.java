@@ -82,6 +82,12 @@ class JshBoot {
         return it;
     }
 
+    public JshBoot withLocalRepo(String repoDirectory) {
+        repo = new File(repoDirectory);
+        repo.mkdirs();
+        return this;
+    }
+
     public static JshBoot localRepo() {
         String envrepoRoot = System.getenv("JSHBOOT_JAR_REPO");
         if (envrepoRoot != null) {
