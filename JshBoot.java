@@ -88,7 +88,7 @@ class JshBoot {
         return this;
     }
 
-    public static JshBoot localRepo() {
+    public static JshBoot defaultLocalRepo() {
         String envrepoRoot = System.getenv("JSHBOOT_JAR_REPO");
         if (envrepoRoot != null) {
             return localRepo(envrepoRoot);

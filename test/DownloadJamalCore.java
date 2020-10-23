@@ -1,6 +1,6 @@
 /open ../JshBoot.java
 
-JshBoot.localRepo().
+JshBoot.defaultLocalRepo().
     maven().groupId("com.javax0.jamal").version("1.2.0").
     artifactId("jamal-core").
     artifactId("jamal-engine").
