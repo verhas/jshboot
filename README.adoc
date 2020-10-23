@@ -1,0 +1,3 @@
+= jshboot - start Java applications from the net
+
+This repository contains JShell scripts that you can use to bootstrap and start your command-line Java application.
