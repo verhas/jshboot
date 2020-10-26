@@ -22,15 +22,15 @@ class JshBoot {
         System.out.println(message);
     }
 
-    private static void info(String message) {
+    public static void info(String message) {
         log("[INFO] " + message);
     }
 
-    private static void warning(String message) {
+    public static void warning(String message) {
         log("[WARN] " + message);
     }
 
-    private static void error(String message) {
+    public static void error(String message) {
         log("[ERRN] " + message);
     }
 
