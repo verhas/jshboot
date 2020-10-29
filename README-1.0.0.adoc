@@ -1,0 +1,311 @@
+= jshboot - start Java applications from the net
+
+== Introduction (5 min)
+
+This repository contains JShell scripts that you can use to bootstrap and start your command-line Java application.
+
+Using JShell, it is possible to start a Java application without installing it.
+A simple JShell script can download the JAR files and can start the JVM to execute the application.
+JShell itself does not contain built-in commands for the purpose, but it can include scripts from different sources.
+To use the script as a library simplifying the download and installation of a Java program, you can include the command
+
+[source,java]
+----
+/open https://raw.githubusercontent.com/verhas/jshboot/main/JshBoot.java
+----
+
+in your script.
+The script contains a class `JshBoot` that is to download JAR files and execute them.
+Jamal, for example, uses the following script:
+
+[source,java]
+----
+/open https://raw.githubusercontent.com/verhas/jshboot/main/JshBoot.java
+
+    var boot=JshBoot.defaultLocalRepo().
+        maven().groupId("com.javax0.jamal").version("1.2.0").
+        artifactId("jamal-engine").
+        artifactId("jamal-api").
+        artifactId("jamal-tools").
+        artifactId("jamal-core").
+        artifactId("jamal-cmd");
+
+... some code deleted that reads the commandLineOptions from a file ...
+
+    String[] args = ...
+
+    boot.execute("javax0.jamal.cmd.JamalMain", args);
+
+/exit
+----
+
+This script loads the `JshBoot` class script at the start using the `/open` command.
+
+The code creates a `boot` object calling the static method `defaultLocalRepo()`.
+
+[source,java]
+----
+    var boot=JshBoot.defaultLocalRepo().
+----
+
+This static method sets the local repository directory to be the default.
+It is `~/.m2/repository`.
+If the environment variable `JSHBOOT_JAR_REPO` points to somewhere else, that will be the used directory.
+Usually, maven stores the downloaded JAR files in the directory `~/.m2/repository`.
+`JshBoot` uses the same, saving extra download in case Maven has already downloaded some libraries.
+
+The next calls declare the downloads.
+
+[source,java]
+----
+        maven().groupId("com.javax0.jamal").version("1.2.0").
+        artifactId("jamal-engine").
+        artifactId("jamal-api").
+        artifactId("jamal-tools").
+        artifactId("jamal-core").
+        artifactId("jamal-cmd");
+----
+
+Calling `maven()` declares that we want to download artifacts from maven central.
+`groupId()` specifies the group ID and `version()` the version.
+The calls to the method `artifactId()` download the individual artifacts for the same `groupId` and `version`.
+
+The last call executes the program.
+
+[source,java]
+----
+    boot.execute("javax0.jamal.cmd.JamalMain", args);
+/exit
+----
+
+The call to `execute()` will build a command line of the form
+
+[source,text]
+----
+java -cp classPath mainClass arguments
+----
+
+`JshBoot` will automatically list all the files on the classpath downloaded.
+The main class is the first argument to the method `execute()`.
+The rest of the arguments are passed to the Java program.
+
+To have your program runnable automatically, you create a JShell script similar to the above.
+Your script should also fetch the `JshBoot` scripts and then use the API.
+[source,java]
+----
+/open https://raw.githubusercontent.com/verhas/jshboot/main/JshBoot.java
+----
+
+You put it on a server so users can reach.
+You provide the URL to the script to your users and instruct them to type in
+
+[source,text]
+----
+jshell https://your.script.url
+----
+
+== Detailed API
+
+In addition to the method calls listed in the introduction, there are many more methods in the API of JshBoot.
+Most of the methods return the same `JshBoot` object so the calls can be chained.
+The static methods either return a new `JshBoot` object (factory methods) or are `void`.
+
+=== Defining the Local Repository
+
+To use the methods, you need a `JshBoot` object.
+The object is available through the `static` methods:
+
+* `defaultLocalRepo()`, and
+* `localRepo(String repoDirectory)`.
+
+Both of these methods return an instance of a `JshBoot` object ready to work.
+The method `localRepo()` can be used when your script knows where it wants to store the downloaded JAR files.
+`defaultLocalRepo()` uses the value of the environment variable `JSHBOOT_JAR_REPO`.
+This environment variable may contain the name of the directory where the JAR files get.
+If the environment variable does not exist then `defaultLocalRepo()` uses `~/.m2/repository`.
+All the JAR files will be downloaded into this directory using the structure of the maven repositories.
+
+Suppose a complex solution wants to store some of the JAR files in a separate directory.
+In that case, it is possible to change the local repo directory.
+Calling the method `withLocalRepo(String repoDirectory)` on the `JshBoot` object will change the local repo.
+Subsequent downloads will use that directory.
+
+`JshBoot` not only downloads the files into the repository but also creates this directory if it does not exist.
+If the directory exists and the file is already there, then `JshBoot` does not download it again.
+The only exception is when the URL contains the string `SNAPSHOT`.
+`SNAPSHOT` JARs are always downloaded, even if the file is already in the repo.
+
+=== Downloading the JAR Files
+
+Several methods download JAR files.
+You can download a JAR file
+
+* directly specifying the URL where the file is, saving into a local repo
+
+* using a maven repository, specifying the `groupId:artifactId:version` coordinate
+
+* fetching a jar and saving directly to a file.
+
+When a JAR file is downloaded or located in the cache directory, it is automatically added to the classpath.
+The classpath is automatically used when the application is executed by `JshBoot`.
+
+==== url()
+
+The simplest one is to call `url(String urlString)`.
+This method will download the JAR file from the URL and store it in the local repository using the file name part of the URL.
+For example, downloading the jar file from the URL
+
+[source,text]
+----
+https://repo.maven.apache.org/maven2/com/javax0/jamal/jamal-api/1.2.0/jamal-api-1.2.0.jar
+----
+
+will create the file
+
+[source,text]
+----
+~/.m2/repository/maven2/com/javax0/jamal/jamal-api/1.2.0/jamal-api-1.2.0.jar
+----
+
+You can use this method when the file is available from some URL and is not a maven repository.
+Note that the directory structure, in this case, mirrors the whole URL.
+It may not be the same as the JAR file in the local repo as maven downloads from a remote.
+
+==== Maven Repository Download
+
+You can download a JAR from a Maven repository when you know the `groupId:artifactId:version` coordinate of the JAR file.
+There are four Maven repositories preconfigured in `JshBoot`.
+These are
+
+* Maven central `https://repo.maven.apache.org/maven2`
+
+* jcenter `https://jcenter.bintray.com/`
+
+* google `https://maven.google.com/`, and
+
+* jitpack `https://jitpack.io/`
+
+For each of these there are three methods:
+
+* `maven()`, `maven(String)`, `maven(String,String,String)`
+* `jcenter()`, `jcenter(String)`, `jcenter(String,String,String)`
+* `google()`, `google(String)`, `google(String,String,String)`
+* `jitpack()`, `jitpack(String)`, `jitpack(String,String,String)`
+
+The three versions can be used to
+
+* `()` set the repository to the specific one, maven, jcenter, google or jitpack
+
+* `(String)` to download a JAR file using the Maven coordinate `groupId:artifactId:version` as an argument, and
+
+* `(String, String, String)` to download a JAR file using the Maven coordinate `groupId`, `artifactId`, `version` as three `String` arguments.
+
+After the repository was set, you can use the methods:
+
+- `groupId(String)`, and  `version(String)` to set the group id and the version of the JAR file, and after that, you can use the method
+- `artifactId(String)` to download the JAR.
+The set `groupId` and `version` remains set even after the JAR was downloaded so that you can download the next JAR with the same `groupId` and `version`.
+
+WARNING: The order of the methods is not the usual `groupId`, `artifactId`, and `version`.
+It is `groupId()` and `version()` in this order or the other way around and only after that the `artifactId()`.
+There is a good reason for this.
+Many times you download an application needing several artifacts from the same software group.
+In this case, the versions of the different artifacts are usually the same.
+Having the `artifactId()` at the last position makes it possible to avoid the duplicate definition of the same `groupId` and `version`.
+You can see an example of this type of use in the introduction part of this document.
+
+When you download a JAR from a Maven repository, the directory structure will be the same that Maven uses.
+Using any JAR, which was downloaded by Maven, will be found without a new downloading.
+
+==== Proprietary Maven Repository
+
+Suppose you want to download from a repository, none of those listed in the previous section.
+In that case, you can specify it calling `remoteRepo(String)`.
+With this method, you can specify the root URL of the remote repository.
+From that on, you can call `groupId(String)`, `version(String)`, and `artifactId(String)` to download the JAR.
+
+==== Manual fetching and storing
+
+If your script has to download a JAR from a URL directly and save it to a file, you can call the method `fetch(URL, File)`.
+This method fetches the content from the URL and stores the content into the File.
+If the File already exists, it will overwrite.
+If there is a need to create some directories to save a file, `JshBoot` will make them.
+This method is static and is `void`.
+You cannot chain it.
+Calling this method does not add the downloaded file to the classpath.
+If you need this file added to the classpath, you have to call `jar(String)`.
+(See in the next section!)
+
+Do not use this method to download JAR files.
+Use this method when you need to download some auxiliary files that you need to execute the program.
+For example, Jamal boot uses this method to download a `jamal.options` file and saves it in the current directory.
+This file contains documentation and options, which are the default behavior.
+It is a good starting point for anyone to configure the Jamal execution for a project.
+
+=== Adding Local File
+
+When you have a file, which is already local, you can add it to the application by calling the method `jar(String)`.
+The argument to the method should specify the location of the JAR file.
+This string will be added to the classpath when the application is executed by `JshBoot`.
+`JshBoot` does not check that the file exists or not; it also adds that to the classpath.
+
+=== Executing the application
+
+When the files are needed to execute the application, `JshBoot` can also start the app in a separate process.
+You can invoke `execute(String mainClass, String ... args)`.
+The first argument is the class's fully qualified name that contains the `public static void main(String[] args)` method.
+The rest of the arguments can be individual arguments (vararg) or as a string array.
+`JshBoot` will add these to the command line at the end.
+The structure of the command line will be
+
+[source,text]
+----
+java -cp ${cp} ${mainClass} ${args}
+----
+
+* The `${cp}` part will be the classpath.
+It contains the JAR files listed with their absolute pathname and using the OS-specific path separator.
+It also contains the strings passed to the method `jar(String)`.
+
+* The parameter ${mainClass}` is the string, given to `execute()` as first argument.
+
+* `${args}` is the space-separated list of the strings passed to the method `execute()` as the final arguments.
+
+=== Aux functions
+
+In addition to these methods, there are a few auxiliary functions.
+There are three static logging methods that you can call.
+These implement logging calling `System.out.println()` and are there only to ease your life to generate consistent output on the console.
+
+* `info(String message)` prints an informational message
+
+* `warning(String message)` prints a warning message
+
+* `error(String message)` prints an error message
+
+== Releases
+
+I will keep the files `JshBoot-x.y.z.java` frozen to hold certain releases.
+When you use the line
+
+[source,java]
+----
+/open https://raw.githubusercontent.com/verhas/jshboot/main/JshBoot.java
+----
+
+in your boot script it is recommended to use
+
+[source,java]
+----
+/open https://raw.githubusercontent.com/verhas/jshboot/main/JshBoot-x.y.z.java
+----
+
+with the version `x.y.z` that you tested your boot script with.
+The file `JshBoot.java` will always contain the newest development version, that may change incompatible with the version you tested.
+It can render your boot script unstable and unusable for your users.
+If you want to be absolutely safe, copy the script to your own repository and use your own copy.
+
+== License
+
+The use of the script is controlled by the Apache License Version 2.0, January 2004.
+It does not require any reference if you copy this script, but it still would be nice.
