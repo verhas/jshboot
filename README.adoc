@@ -1,5 +1,7 @@
 = jshboot - start Java applications from the net
 
+== Introduction (5 min)
+
 This repository contains JShell scripts that you can use to bootstrap and start your command-line Java application.
 
 Using JShell it is possible to start a Java application without installing it.
@@ -80,8 +82,7 @@ The call to `execute()` will build a command line of the form
 
 [source,text]
 ----
-    java -cp classPath mainClass arguments
-/exit
+java -cp classPath mainClass arguments
 ----
 
 `JshBoot` will automatically list all the files on the classpath, which were downloaded.
@@ -89,6 +90,12 @@ The main class is the one specified as the first argument to the method `execute
 The rest of the arguments are passed to the Java program.
 
 To have your program runnable automatically you create a JShell script similar to the above.
+Your script should also fetch the `JshBoot` scripts and then use the API.
+[source,java]
+----
+/open https://raw.githubusercontent.com/verhas/jshboot/main/JshBoot.java
+----
+
 You put it on a server so that it can be downloaded.
 You provide the URL to the script to your users and instruct them to type in
 
@@ -97,3 +104,109 @@ You provide the URL to the script to your users and instruct them to type in
 jshell https://your.script.url
 ----
 
+== Detailed API
+
+In addition to the method calls listed in the introduction there are many more methods in the API of JshBoot.
+Most of the methods return the same `JshBoot` object so that the calls can be chained.
+The static methods either return a new `JshBoot` object (factory methods) or are `void`.
+
+=== Defining the Local Repository
+
+To use the methods you need a `JshBoot` object.
+The object is available through the `static` methods:
+
+* `defaultLocalRepo()`, and
+* `localRepo(String repoDirectory)`.
+
+Both of these methods return an instance of a `JshBoot` object, which is ready to work.
+The method `localRepo()` can be used when your script knows where it wants to store the downloaded JAR files.
+`defaultLocalRepo()` uses the value of the environment variable `JSHBOOT_JAR_REPO`.
+This environment variable may contain the name of the directory where the JAR files will be stored.
+If the environment variable does not exist then `defaultLocalRepo()` uses `~/.m2/repository`.
+All the JAR files will be downloaded into this directory using the structure of the maven repositories.
+
+If a complex solution wants to store some of the JAR files in a separate directory it is possible to change the local repo directory.
+Calling the method `withLocalRepo(String repoDirectory)` on the `JshBoot` object will change the local repo.
+Subsequent downloads will use that directory.
+
+`JshBoot` not only downloads the files into the repository but also creates this directory if it does not exist.
+If the directory exists and the file is already there then `JshBoot` does not download the file again.
+The only exception is when the URL contains the string `SNAPSHOT`.
+`SNAPSHOT` JARs are always downloaded, even if the file is already in the repo.
+
+=== Dowloading the JAR Files
+
+There are several methods that download JAR files.
+
+
+==== url()
+
+The simplest one is to call `url(String urlString)`.
+This method will download the JAR file from the URL and store it in the local repository using the file name part of the URL.
+For example dowloading the jar file from the url
+
+[source,text]
+----
+https://repo.maven.apache.org/maven2/com/javax0/jamal/jamal-api/1.2.0/jamal-api-1.2.0.jar
+----
+
+will create the file
+
+[source,text]
+----
+~/.m2/repository/maven2/com/javax0/jamal/jamal-api/1.2.0/jamal-api-1.2.0.jar
+----
+
+You can use this method, when the file is available from some URL and is not a maven repository.
+Note that the directory structure in this case mirrors the whole URL.
+This may not be the same as the place of the JAR file in the local repo when it is downloaded from a maven repository.
+
+==== Maven Repository Download
+
+You can download a JAR from a Maven repository when you know the `groupId:artifactId:version` coordinate of the JAR file.
+There are four Maven repositories preconfigured in `JshBoot`.
+These are
+
+* Maven central `https://repo.maven.apache.org/maven2`
+
+* jcenter `https://jcenter.bintray.com/`
+
+* google `https://maven.google.com/`, and
+
+* jitpack `https://jitpack.io/`
+
+For each of these there are three methods:
+
+* `maven()`, `maven(String)`, `maven(String,String,String)`
+* `jcenter()`, `jcenter(String)`, `jcenter(String,String,String)`
+* `google()`, `google(String)`, `google(String,String,String)`
+* `jitpack()`, `jitpack(String)`, `jitpack(String,String,String)`
+
+The three versions, can be used to
+
+* `()` set the repository to the specific one, maven, jcenter, google or jitpack
+
+* `(String)` to download a JAR file using the Maven coordinate `groupId:artifactId:version` as argument, and
+
+* `(String,String,String)` to download a JAR file using the Maven coordinate `groupId`,`artifactId`,`version` as three `String` arguments.
+
+After the repository was set you can use the methods:
+
+- `groupId(String)`, and  `version(String)` to set the group id and the version of the JAR file and after that you can use the method
+- `artifactId(String)` to actually download the JAR.
+The set `groupId` and `version` remains set even after the JAR was downloaded, so you can download the next JAR with the same `groupId` and `version`.
+
+WARNING: The order of the methods is not the usual `groupId`, `artifactId` and `version`.
+It is `groupId()` and `version()` in this order or the other way around and only after that the `artifactId()`.
+There is a good reason for this.
+Many times you download an application needing several artifacts from the same software group.
+In this case the versions of the different artifacts are usually the same.
+Having the `artifactId()` at the last position makes it possible to avoid the duplicate definition of the same `groupId` and `version`.
+You can see an example of this type of use at the introduction part of this document.
+
+When you download a JAR from a Maven repository the directory structure will be the same that Maven uses.
+This means that using any JAR, which was downloaded by Maven will be found without a new downloading.
+
+==== Proprietary Maven Repository
+
+If you want to download from a repository, which is none of the listed in the previous section the you can specify it calling `remoteRepo(String)`.

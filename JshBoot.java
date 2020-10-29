@@ -146,10 +146,63 @@ class JshBoot {
         return this;
     }
 
-    public JshBoot maven() {
-        currentRemoteRepo = "https://repo.maven.apache.org/maven2";
+    public JshBoot jcenter(String dependency) throws IOException {
+        jcenter();
+        download(gav(dependency));
         return this;
     }
+
+    public JshBoot jcenter(String groupId, String artifactId, String version) throws IOException {
+        jcenter();
+        download(new GAV(groupId, artifactId, version));
+        return this;
+    }
+
+    public JshBoot google(String dependency) throws IOException {
+        google();
+        download(gav(dependency));
+        return this;
+    }
+
+    public JshBoot google(String groupId, String artifactId, String version) throws IOException {
+        google();
+        download(new GAV(groupId, artifactId, version));
+        return this;
+    }
+
+    public JshBoot jitpack(String dependency) throws IOException {
+        jitpack();
+        download(gav(dependency));
+        return this;
+    }
+
+    public JshBoot jitpack(String groupId, String artifactId, String version) throws IOException {
+        jitpack();
+        download(new GAV(groupId, artifactId, version));
+        return this;
+    }
+
+    public JshBoot remoteRepo(String repo){
+        currentRemoteRepo = repo;
+        return this;
+    }
+
+    public JshBoot maven() {
+        return remoteRepo("https://repo.maven.apache.org/maven2");
+    }
+
+    public JshBoot jcenter() {
+        return remoteRepo("https://jcenter.bintray.com/");
+    }
+
+    public JshBoot google() {
+        return remoteRepo("https://maven.google.com/");
+    }
+
+    public JshBoot jitpack() {
+        return remoteRepo("https://jitpack.io/");
+    }
+
     public JshBoot groupId(String groupId) {
         currentGropId = groupId;
         return this;
