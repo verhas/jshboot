@@ -283,6 +283,28 @@ These implement logging calling `System.out.println()` and are there only to eas
 
 * `error(String message)` prints an error message
 
+== Releases
+
+I will keep the files `JshBoot-x.y.z.java` frozen to hold certain releases.
+When you use the line
+
+[source,java]
+----
+/open https://raw.githubusercontent.com/verhas/jshboot/main/JshBoot.java
+----
+
+in your boot script it is recommended to use
+
+[source,java]
+----
+/open https://raw.githubusercontent.com/verhas/jshboot/main/JshBoot-x.y.z.java
+----
+
+with the version `x.y.z` that you tested your boot script with.
+The file `JshBoot.java` will always contain the newest development version, that may change incompatible with the version you tested.
+It can render your boot script unstable and unusable for your users.
+If you want to be absolutely safe, copy the script to your own repository and use your own copy.
+
 == License
 
 The use of the script is controlled by the Apache License Version 2.0, January 2004.
