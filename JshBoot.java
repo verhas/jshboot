@@ -264,7 +264,6 @@ class JshBoot {
      */
     private void url(URL url, String repoUrl) throws IOException {
         if (!repo.exists()) {
-            info("Creating "+repoUrl);
             repo.mkdirs();
         }
         if (!repo.isDirectory()) {
