@@ -74,19 +74,6 @@ class JshBoot {
     //
     private File repo;
 
-    public static JshBoot localRepo(String repoDirectory) {
-        JshBoot it = new JshBoot();
-        it.repo = new File(repoDirectory);
-        it.repo.mkdirs();
-        return it;
-    }
-
-    public JshBoot withLocalRepo(String repoDirectory) {
-        repo = new File(repoDirectory);
-        repo.mkdirs();
-        return this;
-    }
-
     public static JshBoot defaultLocalRepo() {
         String envrepoRoot = System.getenv("JSHBOOT_JAR_REPO");
         if (envrepoRoot != null) {
@@ -95,6 +82,15 @@ class JshBoot {
             String userHome = System.getProperty("user.home");
             return localRepo(userHome + "/.m2/repository");
         }
+    }
+
+    public static JshBoot localRepo(String repoDirectory) {
+        return new JshBoot().withLocalRepo(repoDirectory);
+    }
+
+    public JshBoot withLocalRepo(String repoDirectory) {
+        repo = new File(repoDirectory);
+        return this;
     }
 
     public JshBoot jar(String path) {
@@ -268,7 +264,7 @@ class JshBoot {
      */
     private void url(URL url, String repoUrl) throws IOException {
         if (!repo.exists()) {
-            throw new RuntimeException("The repo directory '" + repo.getAbsolutePath() + "' does not exist.");
+            repo.mkdirs();
         }
         if (!repo.isDirectory()) {
             throw new RuntimeException("The repo directory '" + repo.getAbsolutePath() + "' is not a directory.");
