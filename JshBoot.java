@@ -294,9 +294,9 @@ class JshBoot {
             throw new IOException("GET url '" + url.toString() + "' returned " + status);
         }
         InputStream is = con.getInputStream();
-        int index;
-        if ((index = jar.getAbsolutePath().lastIndexOf('/')) != -1) {
-            new File(jar.getAbsolutePath().substring(0, index)).mkdirs();
+        File parent = jar.getParentFile();
+        if (!parent.exists()) {
+            parent.mkdirs();
         }
         try (OutputStream outStream = new FileOutputStream(jar)) {
             byte[] buffer = new byte[8 * 1024];
