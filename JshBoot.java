@@ -295,7 +295,7 @@ class JshBoot {
         }
         InputStream is = con.getInputStream();
         File parent = jar.getParentFile();
-        if (!parent.exists()) {
+        if (parent != null && !parent.exists()) {
             parent.mkdirs();
         }
         try (OutputStream outStream = new FileOutputStream(jar)) {
