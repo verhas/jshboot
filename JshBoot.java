@@ -214,6 +214,18 @@ class JshBoot {
         return this;
     }
 
+    public void sysexec(String ... args) throws IOException, InterruptedException {
+        ProcessBuilder builder = new ProcessBuilder();
+        List<String> arguments = new ArrayList<>();
+        arguments.addAll(Arrays.asList(args));
+        info("EXECUTING '"+ String.join(" ",arguments)+"'");
+        builder.command(arguments.toArray(String[]::new))
+            .directory(new File("."));
+        Process process = builder.start();
+        process.getInputStream().transferTo(System.out);
+        process.getErrorStream().transferTo(System.err);
+        int exitCode = process.waitFor();
+    }
 
     public void execute(String mainClass, String ... args) throws IOException, InterruptedException {
         ProcessBuilder builder = new ProcessBuilder();
