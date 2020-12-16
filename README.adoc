@@ -23,7 +23,7 @@ Jamal, for example, uses the following script:
 /open https://raw.githubusercontent.com/verhas/jshboot/main/JshBoot.java
 
     var boot=JshBoot.defaultLocalRepo().
-        maven().groupId("com.javax0.jamal").version("1.2.0").
+        maven().groupId("com.javax0.jamal").version("1.5.1").
         artifactId("jamal-engine").
         artifactId("jamal-api").
         artifactId("jamal-tools").
