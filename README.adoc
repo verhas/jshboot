@@ -267,7 +267,7 @@ java -cp ${cp} ${mainClass} ${args}
 It contains the JAR files listed with their absolute pathname and using the OS-specific path separator.
 It also contains the strings passed to the method `jar(String)`.
 
-* The parameter ${mainClass}` is the string, given to `execute()` as first argument.
+* The parameter `${mainClass}` is the string, given to `execute()` as first argument.
 
 * `${args}` is the space-separated list of the strings passed to the method `execute()` as the final arguments.
 
